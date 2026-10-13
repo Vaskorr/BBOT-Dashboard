@@ -48,7 +48,7 @@ Open [http://localhost:5601](http://localhost:5601) and sign in with:
 
 ```text
 username: bbot
-password: bbot
+password: bbotbbot
 ```
 
 During the first startup, Docker downloads the images and Kibana may take a few minutes to become ready. Check the deployment status with:
@@ -62,7 +62,7 @@ Both setup containers should finish with exit code `0`. They are one-shot initia
 
 ## Secure configuration
 
-The default `bbot:bbot` credentials are intended for local evaluation only. Before exposing the service, copy the example configuration and replace every secret:
+The default `bbot:bbotbbot` credentials are intended for local evaluation only. Before exposing the service, copy the example configuration and replace every secret:
 
 ```bash
 cp .env.example .env
@@ -73,14 +73,14 @@ Main `.env` options:
 | Variable | Purpose | Default |
 |---|---|---|
 | `BBOT_USERNAME` | Kibana login and Elasticsearch user for BBOT | `bbot` |
-| `BBOT_PASSWORD` | Password for the BBOT user | `bbot` |
+| `BBOT_PASSWORD` | Password for the BBOT user (minimum 6 characters) | `bbotbbot` |
 | `ELASTIC_PASSWORD` | Internal Elasticsearch administrator password | `change-me-elastic-admin` |
 | `KIBANA_SYSTEM_PASSWORD` | Internal Kibana service password | `change-me-kibana-system` |
 | `ELASTICSEARCH_PORT` | Published event-ingestion port | `9200` |
 | `KIBANA_PORT` | Published web interface port | `5601` |
 | `ES_JAVA_OPTS` | Elasticsearch JVM heap | `-Xms1g -Xmx1g` |
 
-Every `KIBANA_*_KEY` value must be at least 32 characters long. Quotes and backslashes are not supported in `BBOT_PASSWORD` or `KIBANA_SYSTEM_PASSWORD`. `BBOT_USERNAME` may contain ASCII letters, numbers, dots, hyphens, and underscores. After changing the credentials, recreate the setup services:
+Every `KIBANA_*_KEY` value must be at least 32 characters long. `BBOT_PASSWORD` must be at least 6 characters long because Elasticsearch enforces this minimum. Quotes and backslashes are not supported in `BBOT_PASSWORD` or `KIBANA_SYSTEM_PASSWORD`. `BBOT_USERNAME` may contain ASCII letters, numbers, dots, hyphens, and underscores. After changing the credentials, recreate the setup services:
 
 ```bash
 docker compose up -d --force-recreate elasticsearch-setup kibana kibana-setup
@@ -101,7 +101,7 @@ config:
     elastic:
       url: http://SERVER_IP:9200/bbot-events-000001/_doc
       username: bbot
-      password: bbot
+      password: bbotbbot
 ```
 
 Run BBOT with the preset:
@@ -117,7 +117,7 @@ modules:
   elastic:
     url: http://SERVER_IP:9200/bbot-events-000001/_doc
     username: bbot
-    password: bbot
+    password: bbotbbot
 ```
 
 When using the global configuration, enable the Elastic output module in the command:

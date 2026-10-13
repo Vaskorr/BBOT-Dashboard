@@ -3,7 +3,7 @@ server.host: 0.0.0.0
 elasticsearch.hosts: ["http://elasticsearch:9200"]
 
 # Only the login form is enabled. There is deliberately no anonymous provider.
-xpack.security.enabled: true
+# Security is enabled by Elasticsearch and does not need a separate Kibana flag.
 xpack.security.authc.providers:
   basic.basic1:
     order: 0

@@ -10,5 +10,5 @@ config:
       # Replace SERVER_IP when BBOT runs on a different machine.
       url: http://SERVER_IP:9200/bbot-events-000001/_doc
       username: bbot
-      password: bbot
+      password: bbotbbot
 

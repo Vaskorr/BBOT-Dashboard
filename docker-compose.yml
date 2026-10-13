@@ -45,7 +45,7 @@ services:
       ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-change-me-elastic-admin}
       KIBANA_SYSTEM_PASSWORD: ${KIBANA_SYSTEM_PASSWORD:-change-me-kibana-system}
       BBOT_USERNAME: ${BBOT_USERNAME:-bbot}
-      BBOT_PASSWORD: ${BBOT_PASSWORD:-bbot}
+      BBOT_PASSWORD: ${BBOT_PASSWORD:-bbotbbot}
     volumes:
       - ./setup:/setup:ro
     entrypoint: ["/bin/sh", "/setup/elasticsearch-init.sh"]
@@ -89,7 +89,7 @@ services:
     environment:
       STACK_VERSION: ${STACK_VERSION:-8.16.6}
       BBOT_USERNAME: ${BBOT_USERNAME:-bbot}
-      BBOT_PASSWORD: ${BBOT_PASSWORD:-bbot}
+      BBOT_PASSWORD: ${BBOT_PASSWORD:-bbotbbot}
     volumes:
       - ./kibana:/kibana:ro
       - ./setup:/setup:ro

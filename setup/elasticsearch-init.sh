@@ -18,6 +18,11 @@ case "${BBOT_PASSWORD}${KIBANA_SYSTEM_PASSWORD}" in
     ;;
 esac
 
+if [ "${#BBOT_PASSWORD}" -lt 6 ]; then
+  echo "BBOT_PASSWORD must be at least 6 characters long (required by Elasticsearch)." >&2
+  exit 1
+fi
+
 request() {
   method="$1"
   path="$2"

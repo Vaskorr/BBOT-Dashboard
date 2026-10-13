@@ -101,6 +101,12 @@ def test_saved_objects_are_complete_and_resolved() -> None:
         assert scan["fieldName"] == "scan"
         assert scan["singleSelect"] is True
 
+        panels = json.loads(dashboard["attributes"]["panelsJSON"])
+        navigation = next(
+            panel for panel in panels if panel["panelRefName"] == "panel_0"
+        )
+        assert navigation["gridData"]["h"] >= 7, "navigation panel is too short"
+
     finding_search = by_key[("search", "bbot-finding-list")]
     assert finding_search["attributes"]["sort"][0] == ["severity_rank", "desc"]
 

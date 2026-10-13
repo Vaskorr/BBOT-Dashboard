@@ -160,8 +160,7 @@ def saved_search(
 navigation_markdown = """
 ### BBOT Dashboard
 
-**Choose exactly one scan in the `Scan ID` selector above.**  
-Use the scan registry on the Overview page to match the ID with its BBOT name.
+**Choose exactly one scan in the `Scan ID` selector above.** The Overview page contains the scan name/ID registry.
 
 [Overview](/app/dashboards#/view/bbot-overview) · [Subdomains](/app/dashboards#/view/bbot-subdomains) · [URLs](/app/dashboards#/view/bbot-urls) · [Findings](/app/dashboards#/view/bbot-findings)
 """.strip()
@@ -433,42 +432,42 @@ dashboard(
     "bbot-overview",
     "BBOT — Overview",
     [
-        ("visualization", "bbot-navigation", 0, 0, 48, 5),
-        ("visualization", "bbot-scan-status", 0, 5, 12, 8),
-        ("visualization", "bbot-count-subdomains", 12, 5, 12, 8),
-        ("visualization", "bbot-count-mx", 24, 5, 12, 8),
-        ("visualization", "bbot-count-urls", 36, 5, 12, 8),
-        ("visualization", "bbot-count-findings", 0, 13, 8, 8),
-        ("visualization", "bbot-count-info", 8, 13, 8, 8),
-        ("visualization", "bbot-count-low", 16, 13, 8, 8),
-        ("visualization", "bbot-count-medium", 24, 13, 8, 8),
-        ("visualization", "bbot-count-high", 32, 13, 8, 8),
-        ("visualization", "bbot-count-critical", 40, 13, 8, 8),
-        ("search", "bbot-scan-registry", 0, 21, 48, 14),
+        ("visualization", "bbot-navigation", 0, 0, 48, 7),
+        ("visualization", "bbot-scan-status", 0, 7, 12, 8),
+        ("visualization", "bbot-count-subdomains", 12, 7, 12, 8),
+        ("visualization", "bbot-count-mx", 24, 7, 12, 8),
+        ("visualization", "bbot-count-urls", 36, 7, 12, 8),
+        ("visualization", "bbot-count-findings", 0, 15, 8, 8),
+        ("visualization", "bbot-count-info", 8, 15, 8, 8),
+        ("visualization", "bbot-count-low", 16, 15, 8, 8),
+        ("visualization", "bbot-count-medium", 24, 15, 8, 8),
+        ("visualization", "bbot-count-high", 32, 15, 8, 8),
+        ("visualization", "bbot-count-critical", 40, 15, 8, 8),
+        ("search", "bbot-scan-registry", 0, 23, 48, 14),
     ],
 )
 dashboard(
     "bbot-subdomains",
     "BBOT — Subdomains",
     [
-        ("visualization", "bbot-navigation", 0, 0, 48, 5),
-        ("search", "bbot-subdomain-list", 0, 5, 48, 30),
+        ("visualization", "bbot-navigation", 0, 0, 48, 7),
+        ("search", "bbot-subdomain-list", 0, 7, 48, 30),
     ],
 )
 dashboard(
     "bbot-urls",
     "BBOT — URLs",
     [
-        ("visualization", "bbot-navigation", 0, 0, 48, 5),
-        ("search", "bbot-url-list", 0, 5, 48, 30),
+        ("visualization", "bbot-navigation", 0, 0, 48, 7),
+        ("search", "bbot-url-list", 0, 7, 48, 30),
     ],
 )
 dashboard(
     "bbot-findings",
     "BBOT — Findings",
     [
-        ("visualization", "bbot-navigation", 0, 0, 48, 5),
-        ("search", "bbot-finding-list", 0, 5, 48, 30),
+        ("visualization", "bbot-navigation", 0, 0, 48, 7),
+        ("search", "bbot-finding-list", 0, 7, 48, 30),
     ],
     [("finding_severity", "Severity"), ("finding_name", "Finding type")],
 )
