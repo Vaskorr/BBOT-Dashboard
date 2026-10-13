@@ -1,0 +1,106 @@
+name: bbot-dashboard
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION:-8.16.6}
+    restart: unless-stopped
+    environment:
+      node.name: bbot-elasticsearch
+      cluster.name: bbot-dashboard
+      discovery.type: single-node
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-change-me-elastic-admin}
+      xpack.security.enabled: "true"
+      xpack.security.http.ssl.enabled: "false"
+      xpack.license.self_generated.type: basic
+      bootstrap.memory_lock: "true"
+      ES_JAVA_OPTS: ${ES_JAVA_OPTS:--Xms1g -Xmx1g}
+    ports:
+      - "${ELASTICSEARCH_PORT:-9200}:9200"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+      - ./config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS -u elastic:$${ELASTIC_PASSWORD} http://localhost:9200/_cluster/health >/dev/null",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    networks: [bbot]
+
+  elasticsearch-setup:
+    image: curlimages/curl:8.11.1
+    restart: "no"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    environment:
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-change-me-elastic-admin}
+      KIBANA_SYSTEM_PASSWORD: ${KIBANA_SYSTEM_PASSWORD:-change-me-kibana-system}
+      BBOT_USERNAME: ${BBOT_USERNAME:-bbot}
+      BBOT_PASSWORD: ${BBOT_PASSWORD:-bbot}
+    volumes:
+      - ./setup:/setup:ro
+    entrypoint: ["/bin/sh", "/setup/elasticsearch-init.sh"]
+    networks: [bbot]
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:${STACK_VERSION:-8.16.6}
+    restart: unless-stopped
+    depends_on:
+      elasticsearch-setup:
+        condition: service_completed_successfully
+    environment:
+      ELASTICSEARCH_USERNAME: kibana_system
+      ELASTICSEARCH_PASSWORD: ${KIBANA_SYSTEM_PASSWORD:-change-me-kibana-system}
+      XPACK_SECURITY_ENCRYPTIONKEY: ${KIBANA_ENCRYPTION_KEY:-change-me-32-characters-security1}
+      XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY: ${KIBANA_SAVED_OBJECTS_KEY:-change-me-32-characters-objects01}
+      XPACK_REPORTING_ENCRYPTIONKEY: ${KIBANA_REPORTING_KEY:-change-me-32-characters-report01}
+    ports:
+      - "${KIBANA_PORT:-5601}:5601"
+    volumes:
+      - kibana-data:/usr/share/kibana/data
+      - ./config/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS http://localhost:5601/api/status >/dev/null",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 45s
+    networks: [bbot]
+
+  kibana-setup:
+    image: curlimages/curl:8.11.1
+    restart: "no"
+    depends_on:
+      kibana:
+        condition: service_healthy
+    environment:
+      STACK_VERSION: ${STACK_VERSION:-8.16.6}
+      BBOT_USERNAME: ${BBOT_USERNAME:-bbot}
+      BBOT_PASSWORD: ${BBOT_PASSWORD:-bbot}
+    volumes:
+      - ./kibana:/kibana:ro
+      - ./setup:/setup:ro
+    entrypoint: ["/bin/sh", "/setup/kibana-init.sh"]
+    networks: [bbot]
+
+volumes:
+  elasticsearch-data:
+  kibana-data:
+
+networks:
+  bbot:
+    driver: bridge
+

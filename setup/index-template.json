@@ -1,0 +1,80 @@
+{
+  "index_patterns": ["bbot-events-*"],
+  "priority": 500,
+  "template": {
+    "settings": {
+      "index.default_pipeline": "bbot-normalize",
+      "index.number_of_shards": 1,
+      "index.number_of_replicas": 0,
+      "index.refresh_interval": "5s",
+      "index.mapping.total_fields.limit": 3000
+    },
+    "mappings": {
+      "dynamic": true,
+      "dynamic_templates": [
+        {
+          "strings_as_keywords": {
+            "match_mapping_type": "string",
+            "mapping": {
+              "type": "keyword",
+              "ignore_above": 8191
+            }
+          }
+        }
+      ],
+      "properties": {
+        "timestamp": { "type": "date", "format": "epoch_second||strict_date_optional_time" },
+        "type": { "type": "keyword" },
+        "event_type": { "type": "keyword" },
+        "id": { "type": "keyword" },
+        "uuid": { "type": "keyword" },
+        "scan": { "type": "keyword" },
+        "scan_id": { "type": "keyword" },
+        "scan_name": { "type": "keyword" },
+        "scan_status": { "type": "keyword" },
+        "scan_status_code": { "type": "integer" },
+        "host": { "type": "keyword" },
+        "netloc": { "type": "keyword" },
+        "port": { "type": "integer" },
+        "resolved_hosts": { "type": "keyword" },
+        "tags": { "type": "keyword" },
+        "module": { "type": "keyword" },
+        "module_sequence": { "type": "keyword", "ignore_above": 8191 },
+        "scope_description": { "type": "keyword" },
+        "scope_distance": { "type": "integer" },
+        "event_url": { "type": "keyword", "ignore_above": 8191 },
+        "url_status_code": { "type": "integer" },
+        "http_title": { "type": "keyword", "ignore_above": 2048 },
+        "finding_name": { "type": "keyword", "ignore_above": 2048 },
+        "finding_description": { "type": "text" },
+        "finding_url": { "type": "keyword", "ignore_above": 8191 },
+        "finding_host": { "type": "keyword" },
+        "finding_severity": { "type": "keyword" },
+        "finding_confidence": { "type": "keyword" },
+        "severity_rank": { "type": "integer" },
+        "discovery_context": { "type": "text" },
+        "data": { "type": "keyword", "ignore_above": 8191 },
+        "data_json": {
+          "properties": {
+            "name": { "type": "keyword", "ignore_above": 2048 },
+            "description": { "type": "text" },
+            "severity": { "type": "keyword" },
+            "confidence": { "type": "keyword" },
+            "url": { "type": "keyword", "ignore_above": 8191 },
+            "host": { "type": "keyword" },
+            "status": { "type": "keyword" },
+            "status_code": { "type": "integer" },
+            "started_at": { "type": "date", "format": "epoch_second||strict_date_optional_time" },
+            "finished_at": { "type": "date", "format": "epoch_second||strict_date_optional_time" },
+            "duration_seconds": { "type": "double" }
+          }
+        }
+      }
+    }
+  },
+  "_meta": {
+    "description": "BBOT dashboard index template",
+    "managed_by": "bbot-dashboard"
+  }
+}
+

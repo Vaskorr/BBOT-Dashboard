@@ -1,0 +1,32 @@
+name: Validate
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  repository:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install validation dependency
+        run: pip install PyYAML==6.0.2
+      - name: Validate configuration and saved objects
+        run: python tests/validate_repository.py
+      - name: Check generated bundle is current
+        run: |
+          python scripts/generate_saved_objects.py
+          git diff --exit-code -- kibana/bbot-dashboards.ndjson
+      - name: Validate shell scripts
+        run: |
+          bash -n setup/elasticsearch-init.sh
+          bash -n setup/kibana-init.sh
+      - name: Validate Compose model
+        run: docker compose config --quiet
+
