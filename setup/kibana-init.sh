@@ -27,7 +27,7 @@ fi
 curl -fsS -X PUT -u "$user_auth" \
   -H 'kbn-xsrf: bbot-dashboard-setup' \
   -H 'Content-Type: application/json' \
-  --data '{"attributes":{"defaultIndex":"bbot-events","defaultRoute":"/app/dashboards#/view/bbot-overview"}}' \
+  --data '{"attributes":{"defaultIndex":"bbot-events","defaultRoute":"/app/dashboards#/view/bbot-overview","theme:darkMode":true}}' \
   "$kibana_url/api/saved_objects/config/${STACK_VERSION}?overwrite=true" >/dev/null
 
 echo "Kibana setup complete."

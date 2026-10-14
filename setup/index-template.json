@@ -37,6 +37,7 @@
         "netloc": { "type": "keyword" },
         "port": { "type": "integer" },
         "resolved_hosts": { "type": "keyword" },
+        "dns_record_types": { "type": "keyword" },
         "tags": { "type": "keyword" },
         "module": { "type": "keyword" },
         "module_sequence": { "type": "keyword", "ignore_above": 8191 },

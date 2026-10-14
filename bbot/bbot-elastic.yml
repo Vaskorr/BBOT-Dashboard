@@ -8,7 +8,8 @@ config:
   modules:
     elastic:
       # Replace SERVER_IP when BBOT runs on a different machine.
-      url: http://SERVER_IP:9200/bbot-events-000001/_doc
+      # op_type=index lets the ingest pipeline replace duplicate DNS events.
+      url: http://SERVER_IP:9200/bbot-events-000001/_doc?op_type=index
       username: bbot
       password: bbotbbot
 

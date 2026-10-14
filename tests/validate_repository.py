@@ -30,6 +30,10 @@ def test_configuration_files_parse() -> None:
         with (ROOT / path).open(encoding="utf-8") as handle:
             assert json.load(handle), f"{path} is empty"
 
+    bbot = load_yaml("bbot/bbot-elastic.yml")
+    elastic_url = bbot["config"]["modules"]["elastic"]["url"]
+    assert elastic_url.endswith("/_doc?op_type=index")
+
 
 def test_compose_bootstrap_chain_and_security() -> None:
     compose = load_yaml("docker-compose.yml")
@@ -56,6 +60,16 @@ def test_compose_bootstrap_chain_and_security() -> None:
 
 
 def test_index_template_uses_normalizer() -> None:
+    with (ROOT / "setup/ingest-pipeline.json").open(encoding="utf-8") as handle:
+        pipeline = json.load(handle)
+    timestamp_processor = pipeline["processors"][0]["script"]
+    assert "Instant.ofEpochMilli" in timestamp_processor["source"]
+    for field in ("timestamp", "started_at", "finished_at"):
+        assert field in timestamp_processor["source"]
+    assert pipeline["processors"][1]["set"]["field"] == "event_type"
+    assert pipeline["processors"][2]["set"]["field"] == "scan_id"
+    assert pipeline["processors"][3]["script"]["description"].startswith("Flatten")
+
     with (ROOT / "setup/index-template.json").open(encoding="utf-8") as handle:
         template = json.load(handle)
     assert template["index_patterns"] == ["bbot-events-*"]
@@ -64,6 +78,7 @@ def test_index_template_uses_normalizer() -> None:
     for field in (
         "scan",
         "scan_name",
+        "dns_record_types",
         "event_url",
         "finding_name",
         "finding_severity",
@@ -105,10 +120,28 @@ def test_saved_objects_are_complete_and_resolved() -> None:
         navigation = next(
             panel for panel in panels if panel["panelRefName"] == "panel_0"
         )
-        assert navigation["gridData"]["h"] >= 7, "navigation panel is too short"
+        assert navigation["gridData"]["h"] >= 5, "navigation panel is too short"
 
     finding_search = by_key[("search", "bbot-finding-list")]
     assert finding_search["attributes"]["sort"][0] == ["severity_rank", "desc"]
+
+    subdomain_search = by_key[("search", "bbot-subdomain-list")]
+    assert "dns_record_types" in subdomain_search["attributes"]["columns"]
+
+    url_search = by_key[("search", "bbot-url-list")]
+    url_query = json.loads(url_search["attributes"]["kibanaSavedObjectMeta"]["searchSourceJSON"])["query"]["query"]
+    assert "url_status_code >= 200" in url_query
+    assert "url_status_code < 300" in url_query
+
+    for search_id in (
+        "bbot-scan-registry",
+        "bbot-subdomain-list",
+        "bbot-url-list",
+        "bbot-finding-list",
+    ):
+        columns = by_key[("search", search_id)]["attributes"]["columns"]
+        assert "timestamp" not in columns
+        assert "module" not in columns
 
 
 if __name__ == "__main__":

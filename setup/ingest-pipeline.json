@@ -2,6 +2,13 @@
   "description": "Normalize BBOT 2.x/3.x events for dashboards",
   "processors": [
     {
+      "script": {
+        "description": "Convert numeric Unix timestamps to ISO 8601",
+        "lang": "painless",
+        "source": "if (ctx.timestamp instanceof Number) { def value = ctx.timestamp; ctx.timestamp = Instant.ofEpochMilli((long) (value.doubleValue() * 1000)).toString(); } if (ctx.data_json instanceof Map) { if (ctx.data_json.started_at instanceof Number) { def value = ctx.data_json.started_at; ctx.data_json.started_at = Instant.ofEpochMilli((long) (value.doubleValue() * 1000)).toString(); } if (ctx.data_json.finished_at instanceof Number) { def value = ctx.data_json.finished_at; ctx.data_json.finished_at = Instant.ofEpochMilli((long) (value.doubleValue() * 1000)).toString(); } }"
+      }
+    },
+    {
       "set": {
         "field": "event_type",
         "copy_from": "type",
@@ -20,6 +27,13 @@
         "description": "Flatten dashboard fields without changing the original BBOT event",
         "lang": "painless",
         "source": "if (ctx.type == 'SCAN' && ctx.data_json != null) { if (ctx.data_json.name != null) ctx.scan_name = ctx.data_json.name; if (ctx.data_json.status != null) ctx.scan_status = ctx.data_json.status; if (ctx.data_json.status_code != null) ctx.scan_status_code = ctx.data_json.status_code; } if (ctx.type == 'URL' || ctx.type == 'URL_UNVERIFIED') { if (ctx.data_json != null) { if (ctx.data_json.url != null) ctx.event_url = ctx.data_json.url; if (ctx.data_json.status_code != null) ctx.url_status_code = ctx.data_json.status_code; if (ctx.data_json.http_title != null) ctx.http_title = ctx.data_json.http_title; } else if (ctx.data != null) { ctx.event_url = ctx.data; } } if (ctx.type == 'FINDING') { def finding = ctx.data_json != null ? ctx.data_json : ctx.data; if (finding instanceof Map) { if (finding.name != null) ctx.finding_name = finding.name; if (finding.description != null) ctx.finding_description = finding.description; if (finding.url != null) ctx.finding_url = finding.url; if (finding.host != null) ctx.finding_host = finding.host; if (finding.confidence != null) ctx.finding_confidence = finding.confidence.toString().toUpperCase(); if (finding.severity != null) { String severity = finding.severity.toString().toUpperCase(); if (severity == 'INFORMATIONAL') severity = 'INFO'; if (severity == 'MODERATE') severity = 'MEDIUM'; ctx.finding_severity = severity; def ranks = ['INFO': 1, 'LOW': 2, 'MEDIUM': 3, 'HIGH': 4, 'CRITICAL': 5]; ctx.severity_rank = ranks.containsKey(severity) ? ranks[severity] : 0; } } }"
+      }
+    },
+    {
+      "script": {
+        "description": "Deduplicate DNS names per scan and expose their record types",
+        "lang": "painless",
+        "source": "if (ctx.type == 'DNS_NAME') { if (ctx.scan != null && ctx.id != null) { ctx._id = ctx.scan.toString() + ':' + ctx.id.toString(); } def recordTypes = []; if (ctx.dns_children instanceof Map) { for (def entry : ctx.dns_children.entrySet()) { if (entry.getValue() != null && !entry.getValue().isEmpty()) { String recordType = entry.getKey().toString().toUpperCase(); if (!recordTypes.contains(recordType)) recordTypes.add(recordType); } } } if (ctx.tags instanceof List) { for (def tagValue : ctx.tags) { String tag = tagValue.toString().toLowerCase(); if (tag.endsWith('-record')) { String recordType = tag.substring(0, tag.length() - 7).toUpperCase(); if (!recordTypes.contains(recordType)) recordTypes.add(recordType); } } } Collections.sort(recordTypes); if (!recordTypes.isEmpty()) ctx.dns_record_types = recordTypes; }"
       }
     }
   ]

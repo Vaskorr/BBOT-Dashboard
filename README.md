@@ -11,16 +11,16 @@ A ready-to-use, secured dashboard for [BBOT](https://github.com/blacklanternsecu
 
 </div>
 
-The entire stack starts with a single command and automatically creates the user, ingest pipeline, index template, data view, and four Kibana dashboards. No manual Kibana object import is required. Anonymous access is disabled.
+The entire stack starts with a single command and automatically creates the user, ingest pipeline, index template, dark-themed Kibana UI, data view, and four dashboards. No manual Kibana object import is required. Anonymous access is disabled.
 
 ## Features
 
 | Dashboard | Contents |
 |---|---|
 | **Overview** | Scan status; subdomain, MX record, URL, and finding counts; finding breakdown by `INFO`, `LOW`, `MEDIUM`, `HIGH`, and `CRITICAL`; scan ID/name registry |
-| **Subdomains** | Discovered subdomains, resolved IP addresses, scope, source module, and discovery time |
-| **URLs** | URL, HTTP status, page title, host, source module, and discovery time |
-| **Findings** | Findings sorted from `CRITICAL` to `INFO` by default, with severity and finding-type filters |
+| **Subdomains** | Unique discovered subdomains, DNS record types, resolved IP addresses/hosts, and scope |
+| **URLs** | Verified `2xx` URLs, HTTP status, page title, and host |
+| **Findings** | Color-coded findings sorted from `CRITICAL` to `INFO` by default, with severity and finding-type filters |
 
 Every dashboard includes a **Scan ID** selector. Select exactly one scan to restrict every panel on the page to that scan. The human-readable scan name and its corresponding ID are available in the **Scan registry** table on the Overview dashboard.
 
@@ -99,7 +99,7 @@ output_modules:
 config:
   modules:
     elastic:
-      url: http://SERVER_IP:9200/bbot-events-000001/_doc
+      url: http://SERVER_IP:9200/bbot-events-000001/_doc?op_type=index
       username: bbot
       password: bbotbbot
 ```
@@ -115,7 +115,7 @@ Alternatively, add the connection settings to the BBOT configuration at `~/.conf
 ```yaml
 modules:
   elastic:
-    url: http://SERVER_IP:9200/bbot-events-000001/_doc
+    url: http://SERVER_IP:9200/bbot-events-000001/_doc?op_type=index
     username: bbot
     password: bbotbbot
 ```
@@ -128,14 +128,16 @@ bbot -t example.com -p subdomain-enum -om elastic
 
 BBOT sends an initial `SCAN` event when a scan starts and a final event when it ends. The Overview dashboard therefore displays `ACTIVE` while the scan is running and `FINISHED`, `FAILED`, or `ABORTED` afterward. Dashboards refresh automatically every 10 seconds.
 
+Keep `?op_type=index` in the Elasticsearch URL. The ingest pipeline assigns a stable document ID to each DNS name within a scan, and this option allows later copies discovered by another module to replace the existing document instead of creating a duplicate.
+
 ### Metric definitions
 
 - **Subdomains** — unique `DNS_NAME` events tagged with `subdomain`;
 - **MX records** — unique `DNS_NAME` events tagged with `mx-record`;
-- **URLs** — unique addresses from `URL` and `URL_UNVERIFIED` events;
+- **URLs** — unique verified `URL` events with HTTP status codes from `200` through `299`;
 - **Findings** — unique `FINDING` events, with severity taken from `data_json.severity`.
 
-BBOT 3.x is recommended for reliable URL and finding normalization. The original BBOT event is preserved unchanged; the ingest pipeline only adds flat `finding_*`, `event_url`, and `scan_*` fields for Kibana.
+BBOT 3.x is recommended for reliable URL and finding normalization. The ingest pipeline converts numeric Unix timestamps to ISO 8601 and adds flat `finding_*`, `event_url`, `scan_*`, and `dns_record_types` fields for Kibana; all other BBOT source fields are retained.
 
 ## Operations
 

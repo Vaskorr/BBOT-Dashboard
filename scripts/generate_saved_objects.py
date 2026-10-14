@@ -63,8 +63,41 @@ add(
         "title": "bbot-events-*",
         "timeFieldName": "timestamp",
         "allowNoIndex": True,
-        "fieldAttrs": "{}",
-        "fieldFormatMap": "{}",
+        "fieldAttrs": compact(
+            {
+                "scan": {"customLabel": "Scan ID"},
+                "scan_name": {"customLabel": "Scan name"},
+                "data": {"customLabel": "Subdomain"},
+                "dns_record_types": {"customLabel": "DNS records"},
+                "resolved_hosts": {"customLabel": "Resolved hosts"},
+                "scope_description": {"customLabel": "Scope"},
+                "event_url": {"customLabel": "URL"},
+                "url_status_code": {"customLabel": "HTTP status"},
+                "http_title": {"customLabel": "Title"},
+                "finding_severity": {"customLabel": "Severity"},
+                "finding_name": {"customLabel": "Finding"},
+                "finding_description": {"customLabel": "Description"},
+                "finding_url": {"customLabel": "URL"},
+                "finding_confidence": {"customLabel": "Confidence"},
+            }
+        ),
+        "fieldFormatMap": compact(
+            {
+                "finding_severity": {
+                    "id": "color",
+                    "params": {
+                        "fieldType": "string",
+                        "colors": [
+                            {"range": "-Infinity:Infinity", "regex": "^INFO$", "text": "#FFFFFF", "background": "#006BB4"},
+                            {"range": "-Infinity:Infinity", "regex": "^LOW$", "text": "#000000", "background": "#54B399"},
+                            {"range": "-Infinity:Infinity", "regex": "^MEDIUM$", "text": "#000000", "background": "#FEC514"},
+                            {"range": "-Infinity:Infinity", "regex": "^HIGH$", "text": "#FFFFFF", "background": "#F04E98"},
+                            {"range": "-Infinity:Infinity", "regex": "^CRITICAL$", "text": "#FFFFFF", "background": "#BD271E"},
+                        ],
+                    },
+                }
+            }
+        ),
         "runtimeFieldMap": "{}",
         "sourceFilters": "[]",
         "name": "BBOT events",
@@ -158,11 +191,8 @@ def saved_search(
 
 
 navigation_markdown = """
-### BBOT Dashboard
-
-**Choose exactly one scan in the `Scan ID` selector above.** The Overview page contains the scan name/ID registry.
-
-[Overview](/app/dashboards#/view/bbot-overview) · [Subdomains](/app/dashboards#/view/bbot-subdomains) · [URLs](/app/dashboards#/view/bbot-urls) · [Findings](/app/dashboards#/view/bbot-findings)
+| [◉ **OVERVIEW**](/app/dashboards#/view/bbot-overview) | [⌁ **SUBDOMAINS**](/app/dashboards#/view/bbot-subdomains) | [↗ **URLS**](/app/dashboards#/view/bbot-urls) | [⚑ **FINDINGS**](/app/dashboards#/view/bbot-findings) |
+|:---:|:---:|:---:|:---:|
 """.strip()
 
 add(
@@ -179,7 +209,7 @@ add(
                 "type": "markdown",
                 "aggs": [],
                 "params": {
-                    "fontSize": 13,
+                    "fontSize": 18,
                     "openLinksInNewTab": False,
                     "markdown": navigation_markdown,
                 },
@@ -284,7 +314,7 @@ metric(
     "data",
 )
 metric("bbot-count-mx", "MX records", 'type : "DNS_NAME" and tags : "mx-record"', "data")
-metric("bbot-count-urls", "URLs", 'type : ("URL" or "URL_UNVERIFIED")', "event_url")
+metric("bbot-count-urls", "URLs", 'type : "URL" and url_status_code >= 200 and url_status_code < 300', "event_url")
 metric("bbot-count-findings", "All findings", 'type : "FINDING"')
 for severity in ("INFO", "LOW", "MEDIUM", "HIGH", "CRITICAL"):
     metric(
@@ -297,7 +327,7 @@ saved_search(
     "bbot-scan-registry",
     "Scan registry",
     'type : "SCAN"',
-    ["scan", "scan_name", "scan_status", "data_json.started_at", "data_json.finished_at", "timestamp"],
+    ["scan_name", "scan", "scan_status", "data_json.started_at", "data_json.finished_at"],
     [["timestamp", "desc"]],
     50,
 )
@@ -305,14 +335,14 @@ saved_search(
     "bbot-subdomain-list",
     "Subdomains and resolved IP addresses",
     'type : "DNS_NAME" and tags : "subdomain"',
-    ["data", "resolved_hosts", "scope_description", "module", "timestamp"],
+    ["data", "dns_record_types", "resolved_hosts", "scope_description"],
     [["data", "asc"]],
 )
 saved_search(
     "bbot-url-list",
     "Discovered URLs",
-    'type : ("URL" or "URL_UNVERIFIED")',
-    ["event_url", "url_status_code", "http_title", "host", "module", "timestamp"],
+    'type : "URL" and url_status_code >= 200 and url_status_code < 300',
+    ["event_url", "url_status_code", "http_title", "host"],
     [["event_url", "asc"]],
 )
 saved_search(
@@ -326,8 +356,6 @@ saved_search(
         "finding_url",
         "finding_confidence",
         "host",
-        "module",
-        "timestamp",
     ],
     [["severity_rank", "desc"], ["timestamp", "desc"]],
 )
@@ -432,42 +460,42 @@ dashboard(
     "bbot-overview",
     "BBOT — Overview",
     [
-        ("visualization", "bbot-navigation", 0, 0, 48, 7),
-        ("visualization", "bbot-scan-status", 0, 7, 12, 8),
-        ("visualization", "bbot-count-subdomains", 12, 7, 12, 8),
-        ("visualization", "bbot-count-mx", 24, 7, 12, 8),
-        ("visualization", "bbot-count-urls", 36, 7, 12, 8),
-        ("visualization", "bbot-count-findings", 0, 15, 8, 8),
-        ("visualization", "bbot-count-info", 8, 15, 8, 8),
-        ("visualization", "bbot-count-low", 16, 15, 8, 8),
-        ("visualization", "bbot-count-medium", 24, 15, 8, 8),
-        ("visualization", "bbot-count-high", 32, 15, 8, 8),
-        ("visualization", "bbot-count-critical", 40, 15, 8, 8),
-        ("search", "bbot-scan-registry", 0, 23, 48, 14),
+        ("visualization", "bbot-navigation", 0, 0, 48, 5),
+        ("visualization", "bbot-scan-status", 0, 5, 12, 8),
+        ("visualization", "bbot-count-subdomains", 12, 5, 12, 8),
+        ("visualization", "bbot-count-mx", 24, 5, 12, 8),
+        ("visualization", "bbot-count-urls", 36, 5, 12, 8),
+        ("visualization", "bbot-count-findings", 0, 13, 8, 8),
+        ("visualization", "bbot-count-info", 8, 13, 8, 8),
+        ("visualization", "bbot-count-low", 16, 13, 8, 8),
+        ("visualization", "bbot-count-medium", 24, 13, 8, 8),
+        ("visualization", "bbot-count-high", 32, 13, 8, 8),
+        ("visualization", "bbot-count-critical", 40, 13, 8, 8),
+        ("search", "bbot-scan-registry", 0, 21, 48, 14),
     ],
 )
 dashboard(
     "bbot-subdomains",
     "BBOT — Subdomains",
     [
-        ("visualization", "bbot-navigation", 0, 0, 48, 7),
-        ("search", "bbot-subdomain-list", 0, 7, 48, 30),
+        ("visualization", "bbot-navigation", 0, 0, 48, 5),
+        ("search", "bbot-subdomain-list", 0, 5, 48, 30),
     ],
 )
 dashboard(
     "bbot-urls",
     "BBOT — URLs",
     [
-        ("visualization", "bbot-navigation", 0, 0, 48, 7),
-        ("search", "bbot-url-list", 0, 7, 48, 30),
+        ("visualization", "bbot-navigation", 0, 0, 48, 5),
+        ("search", "bbot-url-list", 0, 5, 48, 30),
     ],
 )
 dashboard(
     "bbot-findings",
     "BBOT — Findings",
     [
-        ("visualization", "bbot-navigation", 0, 0, 48, 7),
-        ("search", "bbot-finding-list", 0, 7, 48, 30),
+        ("visualization", "bbot-navigation", 0, 0, 48, 5),
+        ("search", "bbot-finding-list", 0, 5, 48, 30),
     ],
     [("finding_severity", "Severity"), ("finding_name", "Finding type")],
 )
